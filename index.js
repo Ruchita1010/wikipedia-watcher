@@ -3,7 +3,7 @@ import colors from 'yoctocolors';
 import Queue from './utils/queue.js';
 
 const STREAM_URL = 'https://stream.wikimedia.org/v2/stream/revision-create';
-const REPORT_INTERVAL = 10 * 1000;
+const REPORT_INTERVAL = 60 * 1000;
 const TIME_WINDOW = 5 * 60 * 1000;
 
 const eventSource = new EventSource(STREAM_URL);
