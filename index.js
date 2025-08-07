@@ -95,7 +95,7 @@ function displayUsersReport(users) {
 setInterval(() => {
   const now = Date.now();
   while (eventBuffer.length && eventBuffer[0].timestamp < now - TIME_WINDOW) {
-    eventBuffer.enqueue();
+    eventBuffer.dequeue();
   }
 
   const { domains, users } = getReportData();
