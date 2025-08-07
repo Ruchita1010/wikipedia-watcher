@@ -37,14 +37,9 @@ eventSource.addEventListener('message', (e) => {
   });
 });
 
-setInterval(() => {
+function getReportData() {
   const domains = {};
   const users = {};
-
-  const now = Date.now();
-  while (eventBuffer.length && eventBuffer[0].timestamp < now - TIME_WINDOW) {
-    eventBuffer.shift();
-  }
 
   for (const event of eventBuffer) {
     const { domain, page_title, user_text, user_is_bot, user_edit_count } =
@@ -64,30 +59,48 @@ setInterval(() => {
     }
   }
 
-  const domainEntries = Object.entries(domains)
-    .map(([domain, pagesSet]) => [domain, pagesSet.size])
+  const sortedDomains = Object.entries(domains)
+    .map(([domain, pages]) => [domain, pages.size])
     .sort((a, b) => b[1] - a[1]);
 
-  console.log(colors.bold(colors.blueBright('\n\n**DOMAINS REPORT**')));
+  const sortedUsers = Object.entries(users).sort((a, b) => b[1] - a[1]);
+
+  return { domains: sortedDomains, users: sortedUsers };
+}
+
+function displayDomainsReport(domains) {
+  console.log(colors.bold(colors.magentaBright('\n\n──DOMAINS REPORT──')));
   console.log(
     colors.bold(
-      `Total number of Wikipedia Domains updates: ${colors.yellow(
-        domainEntries.length
+      `Total number of Wikipedia Domains updated: ${colors.yellow(
+        domains.length
       )}`
     )
   );
-  domainEntries.forEach(([domain, uniquePages]) => {
-    console.log(`${domain}: ${colors.yellow(uniquePages)} updated`);
-  });
 
-  console.log(colors.bold(colors.blueBright('\n\n**USERS REPORT**')));
+  domains.forEach(([domain, pages]) => {
+    console.log(`${domain}: ${colors.yellow(pages)} updated`);
+  });
+}
+
+function displayUsersReport(users) {
+  console.log(colors.bold(colors.magentaBright('\n\n──USERS REPORT──')));
   console.log(colors.whiteBright('Users who made changes to en.wikipedia.org'));
-  const sortedUsers = Object.entries(users).sort((a, b) => b[1] - a[1]);
-  sortedUsers.forEach(([username, editCount]) => {
+
+  users.forEach(([username, editCount]) => {
     console.log(`${username}: ${colors.yellow(editCount)}`);
   });
+}
 
-  console.log(
-    colors.gray('\n#####################################################')
-  );
+setInterval(() => {
+  const now = Date.now();
+  while (eventBuffer.length && eventBuffer[0].timestamp < now - TIME_WINDOW) {
+    eventBuffer.enqueue();
+  }
+
+  const { domains, users } = getReportData();
+  displayDomainsReport(domains);
+  displayUsersReport(users);
+
+  console.log(colors.gray('─'.repeat(57)));
 }, REPORT_INTERVAL);
