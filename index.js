@@ -1,4 +1,5 @@
 import { EventSource } from 'eventsource';
+import colors from 'yoctocolors';
 import Queue from './utils/queue.js';
 
 const STREAM_URL = 'https://stream.wikimedia.org/v2/stream/revision-create';
@@ -10,11 +11,13 @@ const eventSource = new EventSource(STREAM_URL);
 const eventBuffer = new Queue();
 
 eventSource.addEventListener('open', () => {
-  console.info('The connection has been established.');
+  console.log(colors.greenBright('✓ The connection has been established.'));
 });
 
 eventSource.addEventListener('error', () => {
-  console.info('An error occured while attempting to connect.');
+  console.error(
+    colors.redBright('✗ An error occured while attempting to connect.')
+  );
 });
 
 eventSource.addEventListener('message', (e) => {
@@ -65,18 +68,26 @@ setInterval(() => {
     .map(([domain, pagesSet]) => [domain, pagesSet.size])
     .sort((a, b) => b[1] - a[1]);
 
+  console.log(colors.bold(colors.blueBright('\n\n**DOMAINS REPORT**')));
   console.log(
-    `\nTotal number of Wikipedia Domains updates: ${domainEntries.length}\n`
+    colors.bold(
+      `Total number of Wikipedia Domains updates: ${colors.yellow(
+        domainEntries.length
+      )}`
+    )
   );
   domainEntries.forEach(([domain, uniquePages]) => {
-    console.log(`${domain}: ${uniquePages} updated`);
+    console.log(`${domain}: ${colors.yellow(uniquePages)} updated`);
   });
 
+  console.log(colors.bold(colors.blueBright('\n\n**USERS REPORT**')));
+  console.log(colors.whiteBright('Users who made changes to en.wikipedia.org'));
   const sortedUsers = Object.entries(users).sort((a, b) => b[1] - a[1]);
-  console.log('\nUsers who made changes to en.wikipedia.org\n');
   sortedUsers.forEach(([username, editCount]) => {
-    console.log(`${username}: ${editCount}`);
+    console.log(`${username}: ${colors.yellow(editCount)}`);
   });
 
-  console.log('\n--------------------------------------------------\n');
+  console.log(
+    colors.gray('\n#####################################################')
+  );
 }, REPORT_INTERVAL);
